@@ -49,10 +49,10 @@ public class TCPSimulator {
 		printStartOfTransmission();
 
 		while (data >= NO_MORE_DATA) {
+			sent = Math.min((int) cwnd, data); // number of segments to be sent each time
+
 			if (!isNetworkDown()) {
 				rtoScaleFactor = MIN_RTO; // if network is not down, restore factor to 1
-
-				sent = Math.min((int) cwnd, data); // number of segments to be sent each time
 
 				if (data == NO_MORE_DATA) { // check for final print (when ACK are received and ssthresh is set)
 					printStatus();
@@ -72,14 +72,13 @@ public class TCPSimulator {
 
 				time++; // next time quantum
 			} else {
-				sent = Math.min((int) cwnd, data); // preparing for printing
 				data -= sent; // calculating how much data would be left if network wasn't down
 
 				printStatus();
 
 				ssthresh = Math.max(MIN_SSTHRESH, ((int) cwnd) / 2); // set new ssthresh value after network down
 				cwnd = MIN_CWND; // set new cwnd value after network down
-				data += sent; // restore segments that have not been sent
+				data += sent; // restore segments that have not been lost
 
 				printSegmentLoss();
 
@@ -186,14 +185,15 @@ public class TCPSimulator {
 	}
 
 	private void printTimeOut() {
-		System.out.println("[!]\t---> Reached maximum RTO (4x base RTO) and timed out. "
+		System.out.println("[!]\t---> Reached maximum RTO (" + MAX_RTO / 2 + "x base RTO) and timed out. "
 				+ "Connection closed at [" + time + "]");
 	}
 
 	private void printSegmentLoss() {
-		System.out.println("[!]\t---> Segments sent at [" + new DecimalFormat("##.#").format(time * rtt)
+		DecimalFormat f = new DecimalFormat("##.#");
+		System.out.println("[!]\t---> Segments sent at [" + f.format(time * rtt)
 				+ "] were lost, restoring cwnd " + (rtoScaleFactor > MIN_RTO ? ", doubling and " : "and ")
-				+ "waiting RTO until [" + new DecimalFormat("##.#").format(rtt * (time + rto * rtoScaleFactor))
+				+ "waiting RTO until [" + f.format(rtt * (time + rto * rtoScaleFactor))
 				+ "]... (" + rtoScaleFactor + "x base RTO)");
 	}
 
@@ -202,9 +202,10 @@ public class TCPSimulator {
 	}
 
 	public String toString() {
-		return "[" + new DecimalFormat("##.#").format(time * rtt) + "]\tremaining = " + data +
+		DecimalFormat f = new DecimalFormat("##.#");
+		return "[" + f.format(time * rtt) + "]\tremaining = " + data +
 				"\t   sent = " + sent +
-				"\t   cwnd = " + new DecimalFormat("##.##").format(cwnd) +
+				"\t   cwnd = " + f.format(cwnd) +
 				"\tssthresh = " + ssthresh +
 				"\t  rcvwnd = " + nextRcvwnd;
 	}
