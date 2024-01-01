@@ -1,1 +1,1 @@
-Simulatore di funzionamento del Protocollo TCP. Utilizzabile per risolvere la terza tipologia di esercizi degli esami del corso ``Reti di calcolatori'' presso UniVR (tenuto dal professor Carra Damiano)
+Simulatore di funzionamento del Protocollo TCP (Persistent). Utilizzabile per risolvere la terza tipologia di esercizi degli esami del corso "Reti di calcolatori" presso UniVR (tenuto dal prof. Damiano Carra)
