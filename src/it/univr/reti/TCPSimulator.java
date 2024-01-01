@@ -26,10 +26,13 @@ public class TCPSimulator {
 
 	// AUXILIARY VARIABLES
 	private double cwnd = MIN_CWND; // in segments
+	private int currentRcvwnd; // in segments
 	private int nextRcvwnd; // in segments
 	private int sent; // actual segments sent each time
 	private int rtoScaleFactor = MIN_RTO; // multiplicative factor of RTO
 	private int time = 0; // quantum of time
+
+	private TCPGraph graph;
 
 	public TCPSimulator(int mssBytes, int dataBytes, int ssthresh, double[][] networkDowns, double[][] rcvwnds,
 			double rtt, int rto) throws IllegalArgumentException {
@@ -43,10 +46,14 @@ public class TCPSimulator {
 		this.ssthresh = (int) (this.rcvwnds[0] / ssthresh / mssBytes);
 		this.rto = rto;
 		this.nextRcvwnd = getNextRcvwnd();
+
+		this.graph = new TCPGraph(rtt);
 	}
 
 	public void simulate() {
 		printStartOfTransmission();
+		addToPlot();
+		addNetworkDownsToPlot();
 
 		while (data >= NO_MORE_DATA) {
 			sent = Math.min((int) cwnd, data); // number of segments to be sent each time
@@ -63,7 +70,13 @@ public class TCPSimulator {
 
 				printStatus();
 
+				currentRcvwnd = nextRcvwnd; // rcvwnd at the beginning of the iteration
 				nextRcvwnd = getNextRcvwnd(); // calculation of rcvwnd for the next iteration
+
+				if (currentRcvwnd != nextRcvwnd) { // if rcvwnd changed, add the old to plot to have straight lines 
+					graph.addPointToPlot("rcvwnd", (time + 1) * rtt, currentRcvwnd);
+				}
+
 				if (cwnd < ssthresh)
 					cwnd = Math.min(Math.min(cwnd + sent, ssthresh), nextRcvwnd); // calculation of cwnd for the next
 																					// iteration
@@ -75,6 +88,10 @@ public class TCPSimulator {
 				data -= sent; // calculating how much data would be left if network wasn't down
 
 				printStatus();
+
+				time += rto * rtoScaleFactor; // wait rto to add to plot to have straight lines
+				addToPlot();
+				time -= rto * rtoScaleFactor; // restore time to previous value
 
 				ssthresh = Math.max(MIN_SSTHRESH, ((int) cwnd) / 2); // set new ssthresh value after network down
 				cwnd = MIN_CWND; // set new cwnd value after network down
@@ -90,9 +107,13 @@ public class TCPSimulator {
 					break;
 				}
 			}
+
+			addToPlot();
 		}
 
+		addToPlot();
 		printEndOfTransmission();
+		graph.showGraph();
 	}
 
 	private boolean isNetworkDown() {
@@ -174,6 +195,18 @@ public class TCPSimulator {
 
 		if (rto != DOUBLE_RTT)
 			throw new IllegalArgumentException("Invalid value provided for rto");
+	}
+
+	private void addToPlot() {
+		graph.addPointToPlot("cwnd", time * rtt, cwnd);
+		graph.addPointToPlot("ssthresh", time * rtt, ssthresh);
+		graph.addPointToPlot("rcvwnd", time * rtt, nextRcvwnd);
+	}
+
+	private void addNetworkDownsToPlot() {
+		for (int i = 0; i < networkDowns.length; i++) {
+			graph.addNetworkDownToPlot(i, networkDowns[i]);
+		}
 	}
 
 	private void printStartOfTransmission() {
