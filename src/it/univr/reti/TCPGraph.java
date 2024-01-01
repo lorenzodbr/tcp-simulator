@@ -19,28 +19,25 @@ import it.univr.reti.Plot.Line;
 import java.awt.Color;
 
 class TCPGraph {
-    // line graph to show status of:
-    // - cwnd
-    // - ssthresh
-    // - rcvwnd
-    // - network down
-
+    // WINDOW & FILES PARAMETERS
+    private static final int WIDTH = 1000;
+    private static final int HEIGHT = 700;
+    private static final String ERROR_MESSAGE = "An error occurred while creating the graph.";
+    private static final String ERROR_TITLE = "Error";
     private static final String FILE_NAME = "graph";
     private static final String FILE_EXTENSION = "png";
     private static final String FILE_PATH = FILE_NAME + "." + FILE_EXTENSION;
     private static final String TITLE = "TCP Graph";
+
+    // GRAPH LABELS
     private static final String X_AXIS_LABEL = "Time";
     private static final String Y_AXIS_LABEL = "Values";
-    private static final String ERROR_MESSAGE = "An error occurred while creating the graph.";
-    private static final String ERROR_TITLE = "Error";
-    private static final int WIDTH = 1000;
-    private static final int HEIGHT = 700;
     public static final String CWND_LABEL = "CWND";
     public static final String SSTHRESH_LABEL = "SSTHRESH";
     public static final String RCVWND_LABEL = "RCVWND";
     public static final String NETWORK_DOWN_LABEL = "Network Down";
     public static final String SEGMENTS_LOST_LABEL = "Segments Lost";
-    
+
     private final Plot plot;
     private final Map<Integer, double[]> networkDowns = new HashMap<Integer, double[]>();
     private final Map<String, List<double[]>> data = new HashMap<String, List<double[]>>();
@@ -131,6 +128,7 @@ class TCPGraph {
             f.add(new JLabel(icon));
             f.setResizable(false);
             f.pack();
+            f.setLocationRelativeTo(null);
             f.setVisible(true);
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 

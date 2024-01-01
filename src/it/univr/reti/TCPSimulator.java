@@ -52,7 +52,7 @@ public class TCPSimulator {
 
 	public void simulate() {
 		printStartOfTransmission();
-		addToPlot();
+		addPointsToPlot();
 		addNetworkDownsToPlot();
 
 		while (data >= NO_MORE_DATA) {
@@ -107,11 +107,11 @@ public class TCPSimulator {
 				}
 			}
 
-			addToPlot();
+			addPointsToPlot();
 		}
 
 		printEndOfTransmission();
-		addToPlot();
+		addPointsToPlot();
 		graph.showGraph();
 	}
 
@@ -196,10 +196,10 @@ public class TCPSimulator {
 			throw new IllegalArgumentException("Invalid value provided for RTO");
 	}
 
-	private void addToPlot() {
+	private void addPointsToPlot() {
+		graph.addPointToPlot(TCPGraph.CWND_LABEL, time * rtt, cwnd);
 		graph.addPointToPlot(TCPGraph.RCVWND_LABEL, time * rtt, nextRcvwnd);
 		graph.addPointToPlot(TCPGraph.SSTHRESH_LABEL, time * rtt, ssthresh);
-		graph.addPointToPlot(TCPGraph.CWND_LABEL, time * rtt, cwnd);
 	}
 
 	private void addNetworkDownsToPlot() {
