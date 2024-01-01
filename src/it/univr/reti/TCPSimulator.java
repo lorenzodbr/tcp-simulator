@@ -3,36 +3,37 @@ package it.univr.reti;
 import java.text.DecimalFormat;
 
 public class TCPSimulator {
-	public static enum SSTRESHValue {
-		INITIAL_RCVWND, // used if sstresh_0 = rcvwnd_0
-		HALF_INITIAL_RCVWND; // used if ssthresh_0 = 0.5rcvwnd_0
-	}
-
-	public static enum RTOValue {
-		DOUBLE_RTT, // used if rto = 2rtt
-	}
+	// CONSTANTS
+	public static int INITIAL_RCVWND = 1; // in segments
+	public static int HALF_INITIAL_RCVWND = 2; // ratio rcvwnd / ssthresh
+	public static int DOUBLE_RTT = 2; // ratio rto / rtt
+	private static final int MAX_RTO = 8; // maximum rto scale factor
+	private static final int MIN_RTO = 1; // base rto scale factor
+	private static final int MIN_CWND = 1; // base cwnd value
+	private static final int NO_MORE_DATA = 0; // no more data to send
+	private static final int MIN_SSTHRESH = 1; // base ssthresh value
 
 	// PROBLEM DATA
 	private int data; // in segments
 	private final int mssBytes; // in bytes
 	private int ssthresh; // in segments
 	private final double rtt; // in sec
-	private final double rto; // in sec
+	private final double rto; // times compared to rtt
 	private final double[][] networkDowns; // in sec {start, finish}
 	private final int[] rcvwnds; // at position i, rcvwnd told at time i; assumes rcvwnd cannot be 0
 
 	// AUXILIARY VARIABLES
-	private double cwnd = 1; // in segments
+	private double cwnd = MIN_CWND; // in segments
 	private int nextRcvwnd; // in segments
 	private int sent; // actual segments sent each time
-	private int rtoScaleFactor = 1; // multiplicative factor of RTO
+	private int rtoScaleFactor = MIN_RTO; // multiplicative factor of RTO
 	private int time = 0; // quantum of time
 
-	public TCPSimulator(int mssBytes, int dataBytes, SSTRESHValue sstresh, double[][] networkDowns, double[][] rcvwnds,
-			double rtt, RTOValue rto) {
+	public TCPSimulator(int mssBytes, int dataBytes, int ssthresh, double[][] networkDowns, double[][] rcvwnds,
+			double rtt, int rto) {
 		if (rcvwnds.length < 1)
 			throw new IllegalArgumentException("Invalid length of rcvwnds (must be > 0)");
-		if (mssBytes <= 0 || dataBytes <= 0 || sstresh == null || rtt <= 0 || rto == null)
+		if (mssBytes <= 0 || dataBytes <= 0 || ssthresh <= 0 || rtt <= 0 || rto <= 0)
 			throw new IllegalArgumentException("Invalid values provided");
 
 		this.mssBytes = mssBytes;
@@ -40,21 +41,21 @@ public class TCPSimulator {
 		this.networkDowns = networkDowns;
 		this.rtt = rtt;
 		this.rcvwnds = buildRcvwnds(rcvwnds);
-		this.ssthresh = (int) (this.rcvwnds[0] * (sstresh == SSTRESHValue.INITIAL_RCVWND ? 1 : 0.5) / mssBytes);
-		this.rto = rtt * (rto == RTOValue.DOUBLE_RTT ? 2 : 1);
+		this.ssthresh = (int) (this.rcvwnds[0] / ssthresh / mssBytes);
+		this.rto = rto;
 		this.nextRcvwnd = getNextRcvwnd();
 	}
 
 	public void simulate() {
 		printStartOfTransmission();
 
-		while (data >= 0) {
+		while (data >= NO_MORE_DATA) {
 			if (!isNetworkDown()) {
-				rtoScaleFactor = 1; // if network is not down, restore factor to 1
+				rtoScaleFactor = MIN_RTO; // if network is not down, restore factor to 1
 
 				sent = Math.min((int) cwnd, data); // number of segments to be sent each time
 
-				if (data == 0) { // check for final print (when ACK are received and ssthresh is set)
+				if (data == NO_MORE_DATA) { // check for final print (when ACK are received and ssthresh is set)
 					printStatus();
 					break;
 				}
@@ -77,22 +78,18 @@ public class TCPSimulator {
 
 				printStatus();
 
-				ssthresh = Math.max(1, ((int) cwnd) / 2); // set new ssthresh value after network down
-				cwnd = 1; // set new cwnd value after network down
+				ssthresh = Math.max(MIN_SSTHRESH, ((int) cwnd) / 2); // set new ssthresh value after network down
+				cwnd = MIN_CWND; // set new cwnd value after network down
 				data += sent; // restore segments that have not been sent
 
-				System.out.println("[!]\t---> Segments sent at [" + new DecimalFormat("##.#").format(time * rtt)
-						+ "] were lost, restoring cwnd " + (rtoScaleFactor > 1 ? ", doubling and " : "and ")
-						+ "waiting RTO until [" + new DecimalFormat("##.#").format(time * rtt + rto * rtoScaleFactor)
-						+ "]... (" + rtoScaleFactor + "x base RTO)");
+				printSegmentLoss();
 
-				time += rto / rtt * rtoScaleFactor; // wait rto
+				time += rto * rtt * rtoScaleFactor; // wait rto
 				rtoScaleFactor *= 2; // double rto for the next time (if any)
 
-				if (rtoScaleFactor == 8) { // rto doubling limit check
-					System.out.println("[!]\t---> Reached maximum RTO (4x base RTO) and timed out. "
-							+ "Connection closed at [" + time + "]");
-					return;
+				if (rtoScaleFactor == MAX_RTO) { // rto doubling limit check
+					printTimeOut();
+					break;
 				}
 			}
 		}
@@ -152,8 +149,20 @@ public class TCPSimulator {
 		System.out.println("\t----- EOT -----");
 	}
 
+	private void printTimeOut() {
+		System.out.println("[!]\t---> Reached maximum RTO (4x base RTO) and timed out. "
+				+ "Connection closed at [" + time + "]");
+	}
+
+	private void printSegmentLoss() {
+		System.out.println("[!]\t---> Segments sent at [" + new DecimalFormat("##.#").format(time * rtt)
+				+ "] were lost, restoring cwnd " + (rtoScaleFactor > MIN_RTO ? ", doubling and " : "and ")
+				+ "waiting RTO until [" + new DecimalFormat("##.#").format(time * rtt + rto * rtoScaleFactor)
+				+ "]... (" + rtoScaleFactor + "x base RTO)");
+	}
+
 	private void printStatus() {
-		System.out.print(this);
+		System.out.println(this);
 	}
 
 	public String toString() {
