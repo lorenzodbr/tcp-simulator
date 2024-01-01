@@ -13,6 +13,7 @@ import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,7 +33,7 @@ public class Plot {
 
 	public enum Line { NONE, SOLID, DASHED };
 	public enum Marker { NONE, CIRCLE, SQUARE, DIAMOND, COLUMN, BAR };
-	public enum AxisFormat { NUMBER, NUMBER_KGM, NUMBER_INT, TIME_HM, TIME_HMS, DATE, DATETIME_HM, DATETIME_HMS }
+	public enum AxisFormat { NUMBER, NUMBER_KGM, NUMBER_DOUBLE, NUMBER_INT, TIME_HM, TIME_HMS, DATE, DATETIME_HM, DATETIME_HMS }
 	public enum LegendFormat { NONE, TOP, RIGHT, BOTTOM }
 	
 	private enum HorizAlign { LEFT, CENTER, RIGHT }
@@ -987,6 +988,7 @@ public class Plot {
 		case DATETIME_HM: return String.format("%tF %1$tR", new java.util.Date((long) d));
 		case DATETIME_HMS: return String.format("%tF %1$tT", new java.util.Date((long) d));
 		case NUMBER_KGM: return formatDoubleAsNumber(d, true);
+		case NUMBER_DOUBLE: return new DecimalFormat("##.#").format(d);
 		case NUMBER_INT: return Integer.toString((int) d); 
 		default: return formatDoubleAsNumber(d, false);
 		}

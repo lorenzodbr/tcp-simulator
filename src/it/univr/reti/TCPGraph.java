@@ -20,8 +20,8 @@ import java.awt.Color;
 
 class TCPGraph {
     // WINDOW & FILES PARAMETERS
-    private static final int WIDTH = 1000;
-    private static final int HEIGHT = 700;
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 500;
     private static final String ERROR_MESSAGE = "An error occurred while creating the graph.";
     private static final String ERROR_TITLE = "Error";
     private static final String FILE_NAME = "graph";
@@ -92,7 +92,7 @@ class TCPGraph {
                 }
             }
 
-            plot.xAxis(X_AXIS_LABEL, Plot.axisOpts().range(0, maxX).format(rttZeroPointFive ? AxisFormat.NUMBER
+            plot.xAxis(X_AXIS_LABEL, Plot.axisOpts().range(0, maxX).format(rttZeroPointFive ? AxisFormat.NUMBER_DOUBLE
                     : AxisFormat.NUMBER_INT));
             plot.yAxis(Y_AXIS_LABEL, Plot.axisOpts().range(0, maxY).format(AxisFormat.NUMBER_INT));
 
