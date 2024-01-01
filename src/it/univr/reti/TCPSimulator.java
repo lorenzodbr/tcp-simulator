@@ -47,7 +47,7 @@ public class TCPSimulator {
 		this.rto = rto;
 		this.nextRcvwnd = getNextRcvwnd();
 
-		this.graph = new TCPGraph(rtt);
+		this.graph = new TCPGraph();
 	}
 
 	public void simulate() {
@@ -74,7 +74,7 @@ public class TCPSimulator {
 				nextRcvwnd = getNextRcvwnd(); // calculation of rcvwnd for the next iteration
 
 				if (currentRcvwnd != nextRcvwnd) { // if rcvwnd changed, add the old to plot to have straight lines 
-					graph.addPointToPlot("rcvwnd", (time + 1) * rtt, currentRcvwnd);
+					graph.addPointToPlot(TCPGraph.RCVWND_LABEL, (time + 1) * rtt, currentRcvwnd);
 				}
 
 				if (cwnd < ssthresh)
@@ -89,9 +89,8 @@ public class TCPSimulator {
 
 				printStatus();
 
-				time += rto * rtoScaleFactor; // wait rto to add to plot to have straight lines
-				addToPlot();
-				time -= rto * rtoScaleFactor; // restore time to previous value
+				graph.addPointToPlot(TCPGraph.SSTHRESH_LABEL, (time + rto * rtoScaleFactor) * rtt, ssthresh); // add rcvwnd to plot to have straight lines
+				graph.addPointToPlot(TCPGraph.SEGMENTS_LOST_LABEL, time * rtt, cwnd); // add segments lost to plot
 
 				ssthresh = Math.max(MIN_SSTHRESH, ((int) cwnd) / 2); // set new ssthresh value after network down
 				cwnd = MIN_CWND; // set new cwnd value after network down
@@ -111,8 +110,8 @@ public class TCPSimulator {
 			addToPlot();
 		}
 
-		addToPlot();
 		printEndOfTransmission();
+		addToPlot();
 		graph.showGraph();
 	}
 
@@ -191,16 +190,16 @@ public class TCPSimulator {
 
 		// check for invalid values of ssthresh and rto
 		if (ssthresh != INITIAL_RCVWND && ssthresh != HALF_INITIAL_RCVWND)
-			throw new IllegalArgumentException("Invalid value provided for ssthresh");
+			throw new IllegalArgumentException("Invalid value provided for SSTHRESH");
 
 		if (rto != DOUBLE_RTT)
-			throw new IllegalArgumentException("Invalid value provided for rto");
+			throw new IllegalArgumentException("Invalid value provided for RTO");
 	}
 
 	private void addToPlot() {
-		graph.addPointToPlot("cwnd", time * rtt, cwnd);
-		graph.addPointToPlot("ssthresh", time * rtt, ssthresh);
-		graph.addPointToPlot("rcvwnd", time * rtt, nextRcvwnd);
+		graph.addPointToPlot(TCPGraph.RCVWND_LABEL, time * rtt, nextRcvwnd);
+		graph.addPointToPlot(TCPGraph.SSTHRESH_LABEL, time * rtt, ssthresh);
+		graph.addPointToPlot(TCPGraph.CWND_LABEL, time * rtt, cwnd);
 	}
 
 	private void addNetworkDownsToPlot() {

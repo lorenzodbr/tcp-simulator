@@ -86,14 +86,6 @@ public class Plot {
 			this.width = width;
 			return this;
 		}
-
-		public int width() {
-			return this.width;
-		}
-
-		public int height() {
-			return this.height;
-		}
 		
 		public PlotOptions height(int height) {
 			this.height = height;
