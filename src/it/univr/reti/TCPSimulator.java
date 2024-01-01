@@ -83,7 +83,7 @@ public class TCPSimulator {
 
 				printSegmentLoss();
 
-				time += rto * rtt * rtoScaleFactor; // wait rto
+				time += rto * rtoScaleFactor; // wait rto
 				rtoScaleFactor *= 2; // double rto for the next time (if any)
 
 				if (rtoScaleFactor == MAX_RTO) { // rto doubling limit check
@@ -115,7 +115,7 @@ public class TCPSimulator {
 
 	private int getNextRcvwnd() {
 		for (int i = time; i > 0; i--) {
-			// get the last known rcvwnd
+			// get the last known rcvwnd by looking backwards in time
 			if (i < rcvwnds.length && rcvwnds[i] != 0)
 				return rcvwnds[i] / mssBytes;
 		}
@@ -193,7 +193,7 @@ public class TCPSimulator {
 	private void printSegmentLoss() {
 		System.out.println("[!]\t---> Segments sent at [" + new DecimalFormat("##.#").format(time * rtt)
 				+ "] were lost, restoring cwnd " + (rtoScaleFactor > MIN_RTO ? ", doubling and " : "and ")
-				+ "waiting RTO until [" + new DecimalFormat("##.#").format(time * rtt + rto * rtoScaleFactor)
+				+ "waiting RTO until [" + new DecimalFormat("##.#").format(rtt * (time + rto * rtoScaleFactor))
 				+ "]... (" + rtoScaleFactor + "x base RTO)");
 	}
 
