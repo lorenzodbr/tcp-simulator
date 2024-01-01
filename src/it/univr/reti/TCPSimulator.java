@@ -7,6 +7,8 @@ public class TCPSimulator {
 	public static int INITIAL_RCVWND = 1; // in segments
 	public static int HALF_INITIAL_RCVWND = 2; // ratio rcvwnd / ssthresh
 	public static int DOUBLE_RTT = 2; // ratio rto / rtt
+	public static final double[][] NO_NETWORK_DOWNS = {}; // no network downs
+
 	private static final int MAX_RTO = 8; // maximum rto scale factor
 	private static final int MIN_RTO = 1; // base rto scale factor
 	private static final int MIN_CWND = 1; // base cwnd value
@@ -30,15 +32,12 @@ public class TCPSimulator {
 	private int time = 0; // quantum of time
 
 	public TCPSimulator(int mssBytes, int dataBytes, int ssthresh, double[][] networkDowns, double[][] rcvwnds,
-			double rtt, int rto) {
-		if (rcvwnds.length < 1)
-			throw new IllegalArgumentException("Invalid length of rcvwnds (must be > 0)");
-		if (mssBytes <= 0 || dataBytes <= 0 || ssthresh <= 0 || rtt <= 0 || rto <= 0)
-			throw new IllegalArgumentException("Invalid values provided");
+			double rtt, int rto) throws IllegalArgumentException {
+		verify(mssBytes, dataBytes, ssthresh, networkDowns, rcvwnds, rtt, rto);
 
 		this.mssBytes = mssBytes;
 		this.data = dataBytes / mssBytes;
-		this.networkDowns = networkDowns;
+		this.networkDowns = networkDowns == null ? NO_NETWORK_DOWNS : networkDowns;
 		this.rtt = rtt;
 		this.rcvwnds = buildRcvwnds(rcvwnds);
 		this.ssthresh = (int) (this.rcvwnds[0] / ssthresh / mssBytes);
@@ -98,14 +97,17 @@ public class TCPSimulator {
 	}
 
 	private boolean isNetworkDown() {
-		for (int i = 0; i < networkDowns.length; i++) {
+		for (double[] networkDown : networkDowns) {
+			double start = networkDown[0];
+			double finish = networkDown[1];
+
 			// check two cases:
 			// - time is exactly in a network down interval
 			// - time is less than a rtt from a network down (hence segments are supposed to
 			// be lost during sending)
-			if (time * rtt >= networkDowns[i][0] && time * rtt < networkDowns[i][1]
-					|| Math.abs(time * rtt - networkDowns[i][0]) < rtt)
+			if (time * rtt >= start && time * rtt < finish || Math.abs(time * rtt - start) < rtt) {
 				return true;
+			}
 		}
 
 		return false;
@@ -139,6 +141,40 @@ public class TCPSimulator {
 		}
 
 		return arr;
+	}
+
+	private void verify(int mssBytes, int dataBytes, int ssthresh, double[][] networkDowns, double[][] rcvwnds,
+			double rtt, int rto) {
+		// check for null values
+		if (rcvwnds == null || rcvwnds.length < 1)
+			throw new IllegalArgumentException("Invalid length of rcvwnds (must be > 0)");
+		if (mssBytes <= 0 || dataBytes <= 0 || ssthresh <= 0 || rtt <= 0 || rto <= 0)
+			throw new IllegalArgumentException("Invalid values provided");
+
+		// check for negative or overlapping rcvwnds
+		for (double[] timeAndValue : rcvwnds) {
+			if (timeAndValue[0] < 0 || timeAndValue[1] <= 0)
+				throw new IllegalArgumentException("Invalid values provided");
+		}
+
+		// check for negative or overlapping network downs
+		for (int i = 0; i < networkDowns.length; i++) {
+			if (networkDowns[i][0] < 0 || networkDowns[i][1] <= 0 || networkDowns[i][0] >= networkDowns[i][1])
+				throw new IllegalArgumentException("Invalid values provided");
+
+			for (int j = i + 1; j < networkDowns.length; j++) {
+				if (networkDowns[i][0] >= networkDowns[j][0] && networkDowns[i][0] < networkDowns[j][1]
+						|| networkDowns[i][1] > networkDowns[j][0] && networkDowns[i][1] <= networkDowns[j][1])
+					throw new IllegalArgumentException("Overlapping network downs provided");
+			}
+		}
+
+		// check for invalid values of ssthresh and rto
+		if (ssthresh != INITIAL_RCVWND && ssthresh != HALF_INITIAL_RCVWND)
+			throw new IllegalArgumentException("Invalid value provided for ssthresh");
+
+		if (rto != DOUBLE_RTT)
+			throw new IllegalArgumentException("Invalid value provided for rto");
 	}
 
 	private void printStartOfTransmission() {
