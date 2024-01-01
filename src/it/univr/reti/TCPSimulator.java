@@ -4,29 +4,29 @@ import java.text.DecimalFormat;
 
 public class TCPSimulator {
 	public static enum SSTRESHValue {
-		INITIAL_RCVWND,						// used if sstresh_0 = rcvwnd_0
-		HALF_INITIAL_RCVWND; 				// used if ssthresh_0 = 0.5rcvwnd_0
+		INITIAL_RCVWND, // used if sstresh_0 = rcvwnd_0
+		HALF_INITIAL_RCVWND; // used if ssthresh_0 = 0.5rcvwnd_0
 	}
 
 	public static enum RTOValue {
-		DOUBLE_RTT, 						// used if rto = 2rtt
+		DOUBLE_RTT, // used if rto = 2rtt
 	}
 
 	// PROBLEM DATA
-	private int data; 						// in segments
-	private final int mssBytes; 			// in bytes
-	private int ssthresh; 					// in segments
-	private final double rtt; 				// in sec
-	private final double rto; 				// in sec
-	private final double[][] networkDowns; 	// in sec {start, finish}
-	private final int[] rcvwnds; 			// at position i, rcvwnd told at time i; assumes rcvwnd cannot be 0
+	private int data; // in segments
+	private final int mssBytes; // in bytes
+	private int ssthresh; // in segments
+	private final double rtt; // in sec
+	private final double rto; // in sec
+	private final double[][] networkDowns; // in sec {start, finish}
+	private final int[] rcvwnds; // at position i, rcvwnd told at time i; assumes rcvwnd cannot be 0
 
 	// AUXILIARY VARIABLES
-	private double cwnd = 1; 				// in segments
-	private int nextRcvwnd; 				// in segments
-	private int sent;						// actual segments sent each time
-	private int rtoScaleFactor = 1; 		// multiplicative factor of RTO
-	private int time = 0; 					// quantum of time
+	private double cwnd = 1; // in segments
+	private int nextRcvwnd; // in segments
+	private int sent; // actual segments sent each time
+	private int rtoScaleFactor = 1; // multiplicative factor of RTO
+	private int time = 0; // quantum of time
 
 	public TCPSimulator(int mssBytes, int dataBytes, SSTRESHValue sstresh, double[][] networkDowns, double[][] rcvwnds,
 			double rtt, RTOValue rto) {
@@ -50,47 +50,48 @@ public class TCPSimulator {
 
 		while (data >= 0) {
 			if (!isNetworkDown()) {
-				rtoScaleFactor = 1; 				// if network is not down, restore factor to 1
+				rtoScaleFactor = 1; // if network is not down, restore factor to 1
 
-				sent = Math.min((int) cwnd, data); 	// number of segments to be sent each time
+				sent = Math.min((int) cwnd, data); // number of segments to be sent each time
 
-				if (data == 0) { 					// check for final print (when ACK are received and ssthresh is set)
+				if (data == 0) { // check for final print (when ACK are received and ssthresh is set)
 					printStatus();
 					break;
 				}
 
-				data -= sent; 						// data being sent
+				data -= sent; // data being sent
 
 				printStatus();
 
-				nextRcvwnd = getNextRcvwnd(); 		// calculation of rcvwnd for the next iteration
+				nextRcvwnd = getNextRcvwnd(); // calculation of rcvwnd for the next iteration
 				if (cwnd < ssthresh)
-					cwnd = Math.min(Math.min(cwnd + sent, ssthresh), nextRcvwnd); 	// calculation of cwnd for the next iteration
+					cwnd = Math.min(Math.min(cwnd + sent, ssthresh), nextRcvwnd); // calculation of cwnd for the next
+																					// iteration
 				else
-					cwnd = Math.min(cwnd + sent / cwnd, nextRcvwnd); 				// based on ssthresh
+					cwnd = Math.min(cwnd + sent / cwnd, nextRcvwnd); // based on ssthresh
 
-				time++; 							// next time quantum
+				time++; // next time quantum
 			} else {
-				sent = Math.min((int) cwnd, data); 	// preparing for printing
-				data -= sent; 						// calculating how much data would be left if network wasn't down
+				sent = Math.min((int) cwnd, data); // preparing for printing
+				data -= sent; // calculating how much data would be left if network wasn't down
 
 				printStatus();
 
-				ssthresh = Math.max(1, ((int) cwnd) / 2); 	// set new ssthresh value after network down
-				cwnd = 1; 									// set new cwnd value after network down
-				data += sent; 								// restore segments that have not been sent
+				ssthresh = Math.max(1, ((int) cwnd) / 2); // set new ssthresh value after network down
+				cwnd = 1; // set new cwnd value after network down
+				data += sent; // restore segments that have not been sent
 
 				System.out.println("[!]\t---> Segments sent at [" + new DecimalFormat("##.#").format(time * rtt)
 						+ "] were lost, restoring cwnd " + (rtoScaleFactor > 1 ? ", doubling and " : "and ")
 						+ "waiting RTO until [" + new DecimalFormat("##.#").format(time * rtt + rto * rtoScaleFactor)
 						+ "]... (" + rtoScaleFactor + "x base RTO)");
 
-				time += rto / rtt * rtoScaleFactor; 		// wait rto
-				rtoScaleFactor *= 2; 						// double rto for the next time (if any)
+				time += rto / rtt * rtoScaleFactor; // wait rto
+				rtoScaleFactor *= 2; // double rto for the next time (if any)
 
-				if (rtoScaleFactor == 8) { 					// rto doubling limit check
+				if (rtoScaleFactor == 8) { // rto doubling limit check
 					System.out.println("[!]\t---> Reached maximum RTO (4x base RTO) and timed out. "
-						+ "Connection closed at [" + time + "]");
+							+ "Connection closed at [" + time + "]");
 					return;
 				}
 			}
@@ -103,9 +104,10 @@ public class TCPSimulator {
 		for (int i = 0; i < networkDowns.length; i++) {
 			// check two cases:
 			// - time is exactly in a network down interval
-			// - time is less than a rtt from a network down (hence segments are supposed to be lost during sending)
+			// - time is less than a rtt from a network down (hence segments are supposed to
+			// be lost during sending)
 			if (time * rtt >= networkDowns[i][0] && time * rtt < networkDowns[i][1]
-			 	|| Math.abs(time * rtt - networkDowns[i][0]) < rtt)
+					|| Math.abs(time * rtt - networkDowns[i][0]) < rtt)
 				return true;
 		}
 
