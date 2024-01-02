@@ -183,9 +183,14 @@ public class TCPSimulator {
 			throw new IllegalArgumentException("Invalid values provided");
 
 		// check for negative or overlapping rcvwnds
-		for (double[] timeAndValue : rcvwnds) {
-			if (timeAndValue[0] < 0 || timeAndValue[1] <= 0)
+		for (int i = 0; i < rcvwnds.length; i++) {
+			if (rcvwnds[i][0] < 0 || rcvwnds[i][1] <= 0)
 				throw new IllegalArgumentException("Invalid values provided");
+
+			for (int j = i - 1; j >= 0; j--) {
+				if (rcvwnds[i][0] < rcvwnds[j][0])
+					throw new IllegalArgumentException("Overlapping rcvwnds provided");
+			}
 		}
 
 		// check for negative or overlapping network downs
