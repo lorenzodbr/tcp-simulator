@@ -73,7 +73,7 @@ public class TCPSimulator {
 				currentRcvwnd = nextRcvwnd; // rcvwnd at the beginning of the iteration
 				nextRcvwnd = getNextRcvwnd(); // calculation of rcvwnd for the next iteration
 
-				if (currentRcvwnd != nextRcvwnd) { // if rcvwnd changed, add the old to plot to have straight lines 
+				if (currentRcvwnd != nextRcvwnd) { // if rcvwnd changed, add the old to plot to have straight lines
 					plot.addPointToPlot(TCPPlot.RCVWND_LABEL, (time + 1) * rtt, currentRcvwnd);
 				}
 
@@ -89,7 +89,12 @@ public class TCPSimulator {
 
 				printStatus();
 
-				plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, (time + rto * rtoScaleFactor) * rtt, ssthresh); // add rcvwnd to plot to have straight lines
+				plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, (time + rto * rtoScaleFactor) * rtt, ssthresh); // add
+																											// rcvwnd to
+																											// plot to
+																											// have
+																											// straight
+																											// lines
 				plot.addPointToPlot(TCPPlot.SEGMENTS_LOST_LABEL, time * rtt, cwnd); // add segments lost to plot
 
 				ssthresh = Math.max(MIN_SSTHRESH, ((int) cwnd) / 2); // set new ssthresh value after network down
@@ -201,14 +206,14 @@ public class TCPSimulator {
 	}
 
 	private void addPointsToPlot() {
-		plot.addPointToPlot(TCPPlot.CWND_LABEL, time * rtt, cwnd);
-		plot.addPointToPlot(TCPPlot.RCVWND_LABEL, time * rtt, nextRcvwnd);
-		plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, time * rtt, ssthresh);
+		plot.addPointToPlot(TCPPlot.CWND_LABEL, time * rtt, cwnd); // add cwnd to plot
+		plot.addPointToPlot(TCPPlot.RCVWND_LABEL, time * rtt, nextRcvwnd); // add rcvwnd to plot
+		plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, time * rtt, ssthresh); // add ssthresh to plot
 	}
 
 	private void addNetworkDownsToPlot() {
 		for (int i = 0; i < networkDowns.length; i++) {
-			plot.addNetworkDownToPlot(i, networkDowns[i]);
+			plot.addNetworkDownToPlot(i, networkDowns[i]); // add network downs to plot
 		}
 	}
 

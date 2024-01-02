@@ -41,10 +41,11 @@ class TCPPlot {
     private static final int X_VALUES_INDEX = 0;
     private static final int Y_VALUES_INDEX = 1;
 
-    private final Plot plot;
-    private final Map<Integer, double[]> networkDowns = new HashMap<Integer, double[]>();
-    private final Map<String, List<double[]>> data = new HashMap<String, List<double[]>>();
-    private final Map<String, DataSeriesOptions> options = Map.ofEntries(
+    // AUXILIARY VARIABLES
+    private final Plot plot; // actual plot
+    private final Map<Integer, double[]> networkDowns = new HashMap<Integer, double[]>(); // in sec {start, finish}
+    private final Map<String, List<double[]>> data = new HashMap<String, List<double[]>>(); // in segments {time, value}
+    private final Map<String, DataSeriesOptions> options = Map.ofEntries( // graphic options for each series
             Map.entry(CWND_LABEL,
                     Plot.seriesOpts().line(Line.NONE).color(Color.BLACK).marker(Plot.Marker.CIRCLE)
                             .markerColor(Color.BLACK)),
@@ -71,10 +72,9 @@ class TCPPlot {
 
     public void showPlot() {
         try {
-            int maxY = -1, maxX = -1;
-            boolean rttZeroPointFive = false;
+            int maxY = -1, maxX = -1, rttDecimal = 1;
 
-            for (String name : data.keySet()) {
+            for (String name : data.keySet()) { // find max values for axes
                 for (double[] value : data.get(name)) {
                     if (value[Y_VALUES_INDEX] > maxY) {
                         maxY = (int) value[Y_VALUES_INDEX];
@@ -86,36 +86,35 @@ class TCPPlot {
                 }
             }
 
-            maxY++;
+            maxY++; // add extra room
 
-            List<double[]> temp;
+            List<double[]> temp; // check if rtt is decimal
             if ((temp = data.getOrDefault(CWND_LABEL, null)) != null) {
                 if (temp.get(1)[X_VALUES_INDEX] % 1 != 0) {
-                    rttZeroPointFive = true;
+                    rttDecimal = 2;
                 }
             }
 
             plot.xAxis(X_AXIS_LABEL, Plot.axisOpts().range(0, maxX).format(AxisFormat.NUMBER));
             plot.yAxis(Y_AXIS_LABEL, Plot.axisOpts().range(0, maxY).format(AxisFormat.NUMBER_INT));
-            plot.opts().grids(maxX * (rttZeroPointFive ? 2 : 1), maxY);
+            plot.opts().grids(maxX * rttDecimal, maxY);
 
-            for (int i = 0; i < networkDowns.size(); i++) {
+            for (int i = 0; i < networkDowns.size(); i++) { // add network downs to plot
                 double[] range = networkDowns.get(i);
                 plot.series(NETWORK_DOWN_LABEL + " (" + (i + 1) + ")",
-                        Plot.data().xy(range[X_VALUES_INDEX], 0).xy(range[X_VALUES_INDEX], maxY)
+                        Plot.data().xy(range[X_VALUES_INDEX], 0)
+                                .xy(range[X_VALUES_INDEX], maxY)
                                 .xy(range[Y_VALUES_INDEX], maxY)
                                 .xy(range[Y_VALUES_INDEX], 0),
                         options.get(NETWORK_DOWN_LABEL));
             }
 
-            for (String name : data.keySet()) {
+            for (String name : data.keySet()) { // add series to plot
                 int size = data.get(name).size();
+                double[] xValues = new double[size], yValues = new double[size], value;
 
-                double[] xValues = new double[size];
-                double[] yValues = new double[size];
-
-                for (int i = 0; i < size; i++) {
-                    double[] value = data.get(name).get(i);
+                for (int i = 0; i < size; i++) { // extract values
+                    value = data.get(name).get(i);
                     xValues[i] = value[X_VALUES_INDEX];
                     yValues[i] = value[Y_VALUES_INDEX];
                 }
@@ -123,9 +122,9 @@ class TCPPlot {
                 plot.series(name, Plot.data().xy(xValues, yValues), options.get(name));
             }
 
-            plot.save(FILE_NAME, FILE_EXTENSION);
+            plot.save(FILE_NAME, FILE_EXTENSION); // save plot to file (only I/O operation allowed)
 
-            JFrame f = new JFrame(TITLE);
+            JFrame f = new JFrame(TITLE); // show plot in a frame
             ImageIcon icon = new ImageIcon(FILE_PATH);
             f.add(new JLabel(icon));
             f.setResizable(false);
@@ -134,7 +133,7 @@ class TCPPlot {
             f.setVisible(true);
             f.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-            new File(FILE_PATH).delete();
+            new File(FILE_PATH).delete(); // delete file immediately after creating the frame
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, ERROR_MESSAGE, ERROR_TITLE, JOptionPane.ERROR_MESSAGE);
         }
