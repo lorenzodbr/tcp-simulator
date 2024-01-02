@@ -20,7 +20,7 @@ import java.awt.Color;
 class TCPPlot {
     // WINDOW & FILES PARAMETERS
     private static final int WIDTH = 800;
-    private static final int HEIGHT = 500;
+    private static final int HEIGHT = 600;
     private static final String ERROR_MESSAGE = "An error occurred while creating the plot.";
     private static final String ERROR_TITLE = "Error";
     private static final String FILE_NAME = "plot";
@@ -37,6 +37,7 @@ class TCPPlot {
     public static final String RCVWND_LABEL = "RCVWND";
     public static final String NETWORK_DOWN_LABEL = "Network Down";
     public static final String SEGMENTS_LOST_LABEL = "Segments Lost";
+    public static final String CONNECTION_TIMED_OUT_LABEL = "Timeout";
 
     // INDEXES
     private static final int X_VALUES_INDEX = 0;
@@ -50,14 +51,17 @@ class TCPPlot {
             Map.entry(CWND_LABEL,
                     Plot.seriesOpts().line(Line.NONE).color(Color.BLACK).marker(Plot.Marker.CIRCLE)
                             .markerColor(Color.BLACK)),
-            Map.entry(SSTHRESH_LABEL, Plot.seriesOpts().color(Color.RED)),
+            Map.entry(SSTHRESH_LABEL, Plot.seriesOpts().color(Color.blue)),
             Map.entry(RCVWND_LABEL, Plot.seriesOpts().color(Color.GREEN)),
             Map.entry(NETWORK_DOWN_LABEL,
                     Plot.seriesOpts().color(Color.WHITE).areaColor(TRANSPARENT_LIGHT_BLUE)
                             .line(Line.DASHED)),
             Map.entry(SEGMENTS_LOST_LABEL,
-                    Plot.seriesOpts().line(Line.NONE).color(Color.RED).marker(Plot.Marker.DIAMOND)
-                            .markerColor(Color.RED)));
+                    Plot.seriesOpts().line(Line.NONE).color(Color.RED).marker(Plot.Marker.X)
+                            .markerColor(Color.RED)),
+            Map.entry(CONNECTION_TIMED_OUT_LABEL,
+                    Plot.seriesOpts().line(Line.NONE).color(Color.RED).marker(Plot.Marker.DOUBLE_LINE)
+                            .markerColor(Color.BLACK)));
 
     public TCPPlot() {
         plot = Plot.plot(Plot.plotOpts().title(TITLE).legend(Plot.LegendFormat.BOTTOM).width(WIDTH).height(HEIGHT));

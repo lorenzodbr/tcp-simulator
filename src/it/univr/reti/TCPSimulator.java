@@ -15,6 +15,11 @@ public class TCPSimulator {
 	private static final int NO_MORE_DATA = 0; // no more data to send
 	private static final int MIN_SSTHRESH = 1; // base ssthresh value
 
+	private static final boolean ADD_CWND = true;
+	private static final boolean ADD_SSTHRESH = true;
+	private static final boolean ADD_RCVWND = true;
+	private static final boolean DO_NOT_ADD_CWND = false;
+
 	// PROBLEM DATA
 	private int data; // in segments
 	private final int mssBytes; // in bytes
@@ -52,13 +57,14 @@ public class TCPSimulator {
 
 	public void simulate() {
 		printStartOfTransmission();
-		addPointsToPlot();
 		addNetworkDownsToPlot();
 
 		while (data >= NO_MORE_DATA) {
 			sent = Math.min((int) cwnd, data); // number of segments to be sent each time
 
 			if (!isNetworkDown()) {
+				addPointsToPlot(ADD_CWND, ADD_SSTHRESH, ADD_RCVWND);
+				
 				rtoScaleFactor = MIN_RTO; // if network is not down, restore factor to 1
 
 				if (data == NO_MORE_DATA) { // check for final print (when ACK are received and ssthresh is set)
@@ -89,12 +95,9 @@ public class TCPSimulator {
 
 				printStatus();
 
-				plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, (time + rto * rtoScaleFactor) * rtt, ssthresh); // add
-																											// rcvwnd to
-																											// plot to
-																											// have
-																											// straight
-																											// lines
+				plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL,
+						(time + rto * rtoScaleFactor) * rtt,
+						ssthresh); // add rcvwnd to plot to have straight lines
 				plot.addPointToPlot(TCPPlot.SEGMENTS_LOST_LABEL, time * rtt, cwnd); // add segments lost to plot
 
 				ssthresh = Math.max(MIN_SSTHRESH, ((int) cwnd) / 2); // set new ssthresh value after network down
@@ -108,15 +111,18 @@ public class TCPSimulator {
 
 				if (rtoScaleFactor == MAX_RTO) { // rto doubling limit check
 					printTimeOut();
-					break;
+					addPointsToPlot(DO_NOT_ADD_CWND, ADD_SSTHRESH, ADD_RCVWND);
+					plot.addPointToPlot(TCPPlot.CONNECTION_TIMED_OUT_LABEL, time * rtt, ssthresh);
+					showPlot();
+					return;
 				}
-			}
 
-			addPointsToPlot();
+				addPointsToPlot(DO_NOT_ADD_CWND, ADD_SSTHRESH, ADD_RCVWND);
+			}
 		}
 
 		printEndOfTransmission();
-		addPointsToPlot();
+		addPointsToPlot(ADD_CWND, ADD_SSTHRESH, ADD_RCVWND);
 		showPlot();
 	}
 
@@ -205,10 +211,13 @@ public class TCPSimulator {
 		plot.showPlot();
 	}
 
-	private void addPointsToPlot() {
-		plot.addPointToPlot(TCPPlot.CWND_LABEL, time * rtt, cwnd); // add cwnd to plot
-		plot.addPointToPlot(TCPPlot.RCVWND_LABEL, time * rtt, nextRcvwnd); // add rcvwnd to plot
-		plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, time * rtt, ssthresh); // add ssthresh to plot
+	private void addPointsToPlot(boolean addCwnd, boolean addSsthresh, boolean addRcvwnd) {
+		if (addCwnd)
+			plot.addPointToPlot(TCPPlot.CWND_LABEL, time * rtt, cwnd); // add cwnd to plot
+		if (addRcvwnd)
+			plot.addPointToPlot(TCPPlot.RCVWND_LABEL, time * rtt, nextRcvwnd); // add rcvwnd to plot
+		if (addSsthresh)
+			plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, time * rtt, ssthresh); // add ssthresh to plot
 	}
 
 	private void addNetworkDownsToPlot() {
