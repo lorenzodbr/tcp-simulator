@@ -27,7 +27,8 @@ class TCPPlot {
     private static final String FILE_EXTENSION = "png";
     private static final String FILE_PATH = FILE_NAME + "." + FILE_EXTENSION;
     private static final String TITLE = "TCP Plot";
-
+    private static final Color TRANSPARENT_LIGHT_BLUE = new Color(33 / 255f, 170 / 255f, 1f, .4f);
+    
     // PLOT LABELS
     private static final String X_AXIS_LABEL = "Time";
     private static final String Y_AXIS_LABEL = "Values";
@@ -45,14 +46,14 @@ class TCPPlot {
     private final Plot plot; // actual plot
     private final Map<Integer, double[]> networkDowns = new HashMap<Integer, double[]>(); // in sec {start, finish}
     private final Map<String, List<double[]>> data = new HashMap<String, List<double[]>>(); // in segments {time, value}
-    private final Map<String, DataSeriesOptions> options = Map.ofEntries( // graphic options for each series
+    private static final Map<String, DataSeriesOptions> options = Map.ofEntries( // graphic options for each series
             Map.entry(CWND_LABEL,
                     Plot.seriesOpts().line(Line.NONE).color(Color.BLACK).marker(Plot.Marker.CIRCLE)
                             .markerColor(Color.BLACK)),
             Map.entry(SSTHRESH_LABEL, Plot.seriesOpts().color(Color.RED)),
             Map.entry(RCVWND_LABEL, Plot.seriesOpts().color(Color.GREEN)),
             Map.entry(NETWORK_DOWN_LABEL,
-                    Plot.seriesOpts().color(Color.WHITE).areaColor(new Color(33 / 255f, 170 / 255f, 1f, .4f))
+                    Plot.seriesOpts().color(Color.WHITE).areaColor(TRANSPARENT_LIGHT_BLUE)
                             .line(Line.DASHED)),
             Map.entry(SEGMENTS_LOST_LABEL,
                     Plot.seriesOpts().line(Line.NONE).color(Color.RED).marker(Plot.Marker.DIAMOND)
