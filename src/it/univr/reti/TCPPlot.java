@@ -76,11 +76,11 @@ class TCPPlot {
 
             for (String name : data.keySet()) {
                 for (double[] value : data.get(name)) {
-                    if (value[1] > maxY) {
+                    if (value[Y_VALUES_INDEX] > maxY) {
                         maxY = (int) value[Y_VALUES_INDEX];
                     }
 
-                    if (value[0] > maxX) {
+                    if (value[X_VALUES_INDEX] > maxX) {
                         maxX = (int) value[X_VALUES_INDEX];
                     }
                 }
