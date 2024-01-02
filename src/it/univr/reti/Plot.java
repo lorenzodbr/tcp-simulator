@@ -1012,7 +1012,7 @@ public class Plot {
 			return String.format("%1$,.2f%2$c", r, suffix[i]);
 		}
 		else
-			return String.format("%1$.3G", d);
+			return new DecimalFormat("##.#").format(d);
 	}
 	
 	private static double x2x(double x, Range xr1, Range xr2) {

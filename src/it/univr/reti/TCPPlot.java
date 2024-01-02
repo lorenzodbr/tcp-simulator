@@ -95,8 +95,7 @@ class TCPPlot {
                 }
             }
 
-            plot.xAxis(X_AXIS_LABEL, Plot.axisOpts().range(0, maxX).format(rttZeroPointFive ? AxisFormat.NUMBER_DOUBLE
-                    : AxisFormat.NUMBER_INT));
+            plot.xAxis(X_AXIS_LABEL, Plot.axisOpts().range(0, maxX).format(AxisFormat.NUMBER));
             plot.yAxis(Y_AXIS_LABEL, Plot.axisOpts().range(0, maxY).format(AxisFormat.NUMBER_INT));
             plot.opts().grids(maxX * (rttZeroPointFive ? 2 : 1), maxY);
 
