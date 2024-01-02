@@ -568,7 +568,7 @@ public class Plot {
 			series.drawLine(g, x, y, x + opts.legendSignSize, y);
 			series.drawMarker(g, x + opts.legendSignSize / 2, y, x, y + opts.legendSignSize / 2);
 			g.setColor(opts.foregroundColor);
-			drawLabel(g, series.nameWithAxes, x + opts.legendSignSize + opts.labelPadding, y, HorizAlign.LEFT, VertAlign.CENTER);
+			drawLabel(g, series.name, x + opts.legendSignSize + opts.labelPadding, y, HorizAlign.LEFT, VertAlign.CENTER);
 		}
 		
 	}
