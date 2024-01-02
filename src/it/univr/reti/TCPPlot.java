@@ -19,8 +19,9 @@ import java.awt.Color;
 
 class TCPPlot {
     // WINDOW & FILES PARAMETERS
-    private static final int WIDTH = 800;
-    private static final int HEIGHT = 600;
+    private static final int WIDTH = 900;
+    private static final int HEIGHT = 650;
+    private static final int PADDING = 27;
     private static final String ERROR_MESSAGE = "An error occurred while creating the plot.";
     private static final String ERROR_TITLE = "Error";
     private static final String FILE_NAME = "plot";
@@ -64,7 +65,11 @@ class TCPPlot {
                             .markerColor(Color.BLACK)));
 
     public TCPPlot() {
-        plot = Plot.plot(Plot.plotOpts().title(TITLE).legend(Plot.LegendFormat.BOTTOM).width(WIDTH).height(HEIGHT));
+        plot = Plot.plot(Plot.plotOpts().title(TITLE)
+                .legend(Plot.LegendFormat.BOTTOM)
+                .width(WIDTH)
+                .height(HEIGHT)
+                .padding(PADDING));
     }
 
     public void addPointToPlot(String name, double xValue, double yValue) {
@@ -77,7 +82,7 @@ class TCPPlot {
 
     public void showPlot() {
         try {
-            int maxY = -1, maxX = -1, rttDecimal = 1;
+            int maxY = -1, maxX = -1, gridDensity = 1;
 
             for (String name : data.keySet()) { // find max values for axes
                 for (double[] value : data.get(name)) {
@@ -96,13 +101,13 @@ class TCPPlot {
             List<double[]> temp; // check if rtt is decimal
             if ((temp = data.getOrDefault(CWND_LABEL, null)) != null) {
                 if (temp.get(1)[X_VALUES_INDEX] % 1 != 0) {
-                    rttDecimal = 2;
+                    gridDensity = 2;
                 }
             }
 
             plot.xAxis(X_AXIS_LABEL, Plot.axisOpts().range(0, maxX).format(AxisFormat.NUMBER));
             plot.yAxis(Y_AXIS_LABEL, Plot.axisOpts().range(0, maxY).format(AxisFormat.NUMBER_INT));
-            plot.opts().grids(maxX * rttDecimal, maxY);
+            plot.opts().grids(maxX * gridDensity, maxY);
 
             for (int i = 0; i < networkDowns.size(); i++) { // add network downs to plot
                 double[] range = networkDowns.get(i);
@@ -114,7 +119,12 @@ class TCPPlot {
                         options.get(NETWORK_DOWN_LABEL));
             }
 
-            for (String name : data.keySet()) { // add series to plot
+            // needed to have the right z-index of the series
+            List<String> names = new ArrayList<String>(data.keySet());
+            names.add(names.remove(0)); // used to bring cwnd & segments lost to the end
+            names.add(names.remove(0));
+
+            for (String name : names) { // add series to plot
                 int size = data.get(name).size();
                 double[] xValues = new double[size], yValues = new double[size], value;
 
