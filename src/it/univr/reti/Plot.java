@@ -1021,9 +1021,11 @@ public class Plot {
 				case DOUBLE_LINE:
 					// draw 2 parallel lines rotated 45 degrees
 					g.setColor(opts.markerColor);
-					g.drawLine(toInt(x2 - halfMarkerSize), toInt(y2 + halfMarkerSize + 3), toInt(x2 + 0.25*halfMarkerSize),
+					g.drawLine(toInt(x2 - halfMarkerSize), toInt(y2 + halfMarkerSize + 3),
+							toInt(x2 + 0.25 * halfMarkerSize),
 							toInt(y2 - halfMarkerSize + 3));
-					g.drawLine(toInt(x2 - halfMarkerSize), toInt(y2 + halfMarkerSize - 3), toInt(x2 + 0.25*halfMarkerSize),
+					g.drawLine(toInt(x2 - halfMarkerSize), toInt(y2 + halfMarkerSize - 3),
+							toInt(x2 + 0.25 * halfMarkerSize),
 							toInt(y2 - halfMarkerSize - 3));
 					break;
 				default:

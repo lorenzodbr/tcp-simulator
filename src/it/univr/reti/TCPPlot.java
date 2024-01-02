@@ -28,7 +28,7 @@ class TCPPlot {
     private static final String FILE_PATH = FILE_NAME + "." + FILE_EXTENSION;
     private static final String TITLE = "TCP Plot";
     private static final Color TRANSPARENT_LIGHT_BLUE = new Color(33 / 255f, 170 / 255f, 1f, .4f);
-    
+
     // PLOT LABELS
     private static final String X_AXIS_LABEL = "Time";
     private static final String Y_AXIS_LABEL = "Values";
