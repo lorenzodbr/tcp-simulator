@@ -188,7 +188,7 @@ public class TCPSimulator {
 				throw new IllegalArgumentException("Invalid values provided");
 
 			for (int j = i - 1; j >= 0; j--) {
-				if (rcvwnds[i][0] < rcvwnds[j][0])
+				if (rcvwnds[i][0] <= rcvwnds[j][0])
 					throw new IllegalArgumentException("Overlapping rcvwnds provided");
 			}
 		}
