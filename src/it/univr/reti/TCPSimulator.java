@@ -14,7 +14,6 @@ public class TCPSimulator {
 	private static final int MIN_CWND = 1; // base cwnd value
 	private static final int NO_MORE_DATA = 0; // no more data to send
 	private static final int MIN_SSTHRESH = 1; // base ssthresh value
-	private static final double GRAPHIC_DESYNC_FACTOR = .997; // desync factor for when two lines overlap
 
 	private static final boolean ADD_CWND = true; // flags used to specify which values to add to the plot
 	private static final boolean ADD_SSTHRESH = true;
@@ -97,8 +96,9 @@ public class TCPSimulator {
 				printStatus();
 
 				plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, // add ssthresh to plot to have straight lines
-						(time + rto * rtoScaleFactor) * rtt,
-						ssthresh * (nextRcvwnd == ssthresh ? GRAPHIC_DESYNC_FACTOR : 1));
+						(time + rto * rtoScaleFactor) * rtt, ssthresh);
+				plot.addPointToPlot(TCPPlot.RCVWND_LABEL, // add ssthresh to plot to have straight lines
+						time * rtt, nextRcvwnd);
 				plot.addPointToPlot(TCPPlot.SEGMENTS_LOST_LABEL, time * rtt, cwnd); // add segments lost to plot
 
 				ssthresh = Math.max(MIN_SSTHRESH, ((int) cwnd) / 2); // set new ssthresh value after network down
@@ -223,8 +223,7 @@ public class TCPSimulator {
 		if (addRcvwnd)
 			plot.addPointToPlot(TCPPlot.RCVWND_LABEL, time * rtt, nextRcvwnd); // add rcvwnd to plot
 		if (addSsthresh)
-			plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, time * rtt,
-					ssthresh * (nextRcvwnd == ssthresh ? GRAPHIC_DESYNC_FACTOR : 1));
+			plot.addPointToPlot(TCPPlot.SSTHRESH_LABEL, time * rtt, ssthresh);
 	}
 
 	private void addNetworkDownsToPlot() {
