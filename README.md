@@ -14,7 +14,7 @@ Clone this repository or simply download the code. To change the exercise data, 
 
 | ![image](https://github.com/user-attachments/assets/4febf95e-2cd3-420f-94fc-465d6c7f35ab) |
 |:--:|
-| *Default parameters in `Main.java`* |
+| *Example parameters in `Main.java`* |
 
 | ![image](https://github.com/user-attachments/assets/cb89f1b9-ada4-4a71-a823-013f3a4c8089) |
 |:--:|
