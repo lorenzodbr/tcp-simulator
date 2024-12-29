@@ -6,7 +6,7 @@ Simulator of TCP Protocol operation that can be used to solve the third type of 
 This tool has NOT been tested extensively, so it might produce wrong answers. You should only use it for comparison with your own solution.
 
 ### Note
-If your plot looks like the image below, that's an issue caused by scaling issues. Some screens display it smoothly, others don't. Anyway, it shouldn't be an issue.
+If text in your plot looks low-res (like the image below), it's probably an issue caused by your OS' scaling management. Anyway, it should not completely affect the readability of the plot.
 
 # Install/Usage
 
