@@ -6,7 +6,7 @@ Simulator of TCP Protocol operation that can be used to solve the third type of 
 This tool has NOT been tested extensively, so it might produce wrong answers. You should only use it for comparison with your own solution.
 
 ### Note
-As you can see in the picture below, plot quality isn't great, but I realized this after I had already started working with that library and I didn't want to refactor. Anyway, it shouldn't be an issue.
+If your plot looks like the image below, that's an issue caused by scaling issues. Some screens display it smoothly, others don't. Anyway, it shouldn't be an issue.
 
 # Install/Usage
 
